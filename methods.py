@@ -24,7 +24,8 @@ def __send_request__(endpoint=None, ):
         status_code = response.status_code
         print(f"Response status = {status_code}")
     return response.json()
-    
+
+# TODO преобразовать к функции с одним параметром(ендпоинт). При сохранении файла слеш меняется на землю _
 def get_all_vacancies():
     endpoint = "vacancies"
     response_json = __send_request__(endpoint)
@@ -51,7 +52,7 @@ def clean_folfer_jsons(directory):
                 print(f"Directory {file} is not deleted. This script only removes files.")
         except Exception as e:
             print(f"Error occurred while deleting file {file}: {e}")
-
+# TODO Затянуть побольше методов
 
 # endpoint = "vacancies"
 # url = base_url + endpoint
