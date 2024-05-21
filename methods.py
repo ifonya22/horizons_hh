@@ -10,12 +10,6 @@ HEADERS = {
     "Content-type": "application/json"
 } # type: ignore
 
-base_url = "https://api.hh.ru/"
-HEADERS = {
-    "User-Agent": "Mozilla/5.0",
-    "Content-type": "application/json"
-} # type: ignore
-
 def __send_request__(endpoint=None, params :dict=None):
     url = base_url + endpoint
     print(f"Requesting {endpoint}")
@@ -23,6 +17,8 @@ def __send_request__(endpoint=None, params :dict=None):
         current_session.headers = HEADERS
         response = current_session.get(url=url, headers=HEADERS, params=params)
         status_code = response.status_code
+        if status_code == 400:
+            raise Exception(f"Error request with code {status_code}")
         print(f"Response status = {status_code}")
     return response.json()
 
@@ -53,7 +49,9 @@ def clean_folfer_jsons(directory):
                 print(f"Directory {file} is not deleted. This script only removes files.")
         except Exception as e:
             print(f"Error occurred while deleting file {file}: {e}")
-# TODO Затянуть побольше методов
+
+def choose_option():
+    pass
 
 # endpoint = "vacancies"
 # url = base_url + endpoint
