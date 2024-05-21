@@ -8,63 +8,40 @@ with open('jsons/vacancies.json', encoding='utf-8') as inputfile:
 mydict = []
 for i in range(len(myfile['items'])):
     mydict.append(myfile['items'][i])
-    print (mydict)
+    # print (mydict)
 
 #далее идут блоки, где мы из словаря формируем столбцы датафрейма
 
 name = []
-for i in range(len(mydict)):
-    name.append(mydict[i]['name'])
-print(name)
-
 salaryfr = []
-for i in range(len(mydict)):
+salaryto = []
+salarycur = []
+area = []
+publish = []
+employer = []
+prole = []
+exp = []
+count = len(mydict)
+for i in range(count):
+    print(f"{i} from {count}")
+    name.append(mydict[i]['name'])
     try: 
         salaryfr.append(mydict[i]['salary']['from'])
     except: 
         salaryfr.append('0')
-print(salaryfr)
-
-salaryto = []
-for i in range(len(mydict)):
     try: 
         salaryto.append(mydict[i]['salary']['to'])
     except: 
         salaryto.append('0')
-print(salaryto)
-
-salarycur = []
-for i in range(len(mydict)):
     try: 
         salarycur.append(mydict[i]['salary']['currency'])
     except: 
         salarycur.append('0')
-print(salarycur)
-
-area = []
-for i in range(len(mydict)):
-        area.append(mydict[i]['area']['name'])
-print(area)
-
-publish = []
-for i in range(len(mydict)):
-        publish.append(mydict[i]['published_at'])
-print(publish)
-
-employer = []
-for i in range(len(mydict)):
-        employer.append(mydict[i]['employer']['name'])
-print(employer)
-
-prole = []
-for i in range(len(mydict)):
-        prole.append(mydict[i]['professional_roles'][0]['name'])
-print(prole)
-
-exp = []
-for i in range(len(mydict)):
-        exp.append(mydict[i]['experience']['name'])
-print(exp)
+    area.append(mydict[i]['area']['name'])
+    publish.append(mydict[i]['published_at'])
+    employer.append(mydict[i]['employer']['name'])
+    prole.append(mydict[i]['professional_roles'][0]['name'])
+    exp.append(mydict[i]['experience']['name'])
 
 #собираем датафрейм, транспонируя списки с данными из hh api. Задаем имена столбцов
 data = []
