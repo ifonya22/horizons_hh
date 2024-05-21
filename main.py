@@ -20,6 +20,7 @@ from methods import get_method, __send_request__
 methods = ["vacancies"]
 import json
 from datetime import datetime
+from time import sleep
 
 if __name__ == "__main__":
     # for method in methods:
@@ -86,7 +87,9 @@ ____
             "premium": False
                 }
         response_json = __send_request__(endpoint=methods[0], params=params_vacancies)
-        for page in range(1, 11):
+        for page in range(1, 19):
+            print(f"page = {page}")
+            sleep(3)
             params_vacancies = {
                 "experience": experience_list[experience]["id"],
                 "professional_role": 96,
