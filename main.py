@@ -89,7 +89,7 @@ ____
         response_json = __send_request__(endpoint=methods[0], params=params_vacancies)
         for page in range(1, 19):
             print(f"page = {page}")
-            sleep(3)
+            # sleep(3)
             params_vacancies = {
                 "experience": experience_list[experience]["id"],
                 "professional_role": 96,
