@@ -1,26 +1,9 @@
-# from requests import Session
-# import json
-# base_url = "https://api.hh.ru/"
-# HEADERS = {
-#     "User-Agent": "Mozilla/5.0",
-#     "Content-type": "application/json"
-# } # type: ignore
-
-# endpoint = "vacancies"
-# url = base_url + endpoint
-# print(f"url = {url}")
-# with Session() as current_session:
-#     current_session.headers = HEADERS
-#     response = current_session.get(url=url, headers=HEADERS)
-# data = response.json()
-# with open('vacancies.json', 'w', encoding='utf8') as file:
-#     json.dump(data, file, ensure_ascii=False, indent=3)
-
 from methods import get_method, __send_request__
 methods = ["vacancies"]
 import json
 from datetime import datetime
 from time import sleep
+from preprocessing import start_prprocessing
 
 if __name__ == "__main__":
     # for method in methods:
@@ -109,6 +92,16 @@ ____
             response_json["items"] += __send_request__(endpoint=methods[0], params=params_vacancies)["items"]
         json.dump(response_json, file, ensure_ascii=False, indent=3)
 
+    input("""_____
+Данные из хх ру загружены.
+Нажмите Enter начать очистку данных
+_____
+""")
+    size = start_prprocessing()
+    input(f"""_____
+Очистка данных завершена.
+Всего получено {size} элементов после очистки
+_____""")
     # get_method(endpoint=methods[0], params=params_vacancies)
     # get_method(endpoint='dictionaries')
     # get_method(endpoint='areas')
