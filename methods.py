@@ -12,7 +12,7 @@ HEADERS = {
 
 def __send_request__(endpoint=None, params :dict=None):
     url = base_url + endpoint
-    print(f"Requesting {endpoint}")
+    # print(f"Requesting {endpoint}")
     with Session() as current_session:
         current_session.headers = HEADERS
         response = current_session.get(url=url, headers=HEADERS, params=params)
