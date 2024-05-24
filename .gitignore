@@ -1,10 +1,10 @@
 # Byte-compiled / optimized / DLL files
-jsons
+jsons/
 sql.sql
 __pycache__/
 *.py[cod]
 *$py.class
-
+csv/
 # C extensions
 *.so
 
