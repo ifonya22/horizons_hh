@@ -19,7 +19,9 @@ def visualization():
     key_vac_name = True
     min_num_vacans = 1
     from_data = '2020-05-20'
-    to_data = '2024-05-20'
+    today = datetime.date.today()
+    to_data = today.strftime('%Y-%m-%d')
+    # to_data = '2024-05-20'
     location = 'москва'
     with_zp = True
     from_zp_rub = 60000
@@ -39,31 +41,63 @@ def visualization():
     st.title("Фильтрация вакансий")
 
     st.text_input("Ключевые слова", value=key_words, key="key_words")
-    st.checkbox("Искать в названии вакансии", value=key_vac_name, key="key_vac_name")
+    st.checkbox(
+        "Искать в названии вакансии",
+        value=key_vac_name,
+        key="key_vac_name"
+    )
 
-    st.number_input("Минимальное количество вакансий", value=min_num_vacans, min_value=0, key="min_num_vacans")
+    st.number_input(
+        "Минимальное количество вакансий",
+        value=min_num_vacans,
+        min_value=0,
+        key="min_num_vacans"
+    )
 
-    st.date_input("Период от", value=pd.to_datetime(from_data), key="from_data")
+    st.date_input(
+        "Период от",
+        value=pd.to_datetime(from_data),
+        key="from_data"
+    )
     st.date_input("Период до", value=pd.to_datetime(to_data), key="to_data")
 
     st.text_input("Локация", value=location, key="location")
 
-    st.checkbox("Показывать вакансии с зарплатой", value=with_zp, key="with_zp")
-    st.number_input("Зарплата от (руб.)", value=from_zp_rub, min_value=0, key="from_zp_rub")
-    st.number_input("Зарплата до (руб.)", value=to_zp_rub, min_value=0, key="to_zp_rub")
+    st.checkbox(
+        "Показывать вакансии с зарплатой",
+        value=with_zp,
+        key="with_zp"
+    )
+
+    st.number_input(
+        "Зарплата от (руб.)",
+        value=from_zp_rub,
+        min_value=0,
+        key="from_zp_rub"
+    )
+    st.number_input(
+        "Зарплата до (руб.)",
+        value=to_zp_rub,
+        min_value=0,
+        key="to_zp_rub"
+    )
 
     if st.button("Применить фильтры"):
         df = df[df['количество вакансий'] >= st.session_state.min_num_vacans]
 
         data_from = st.session_state.from_data.strftime('%Y-%m-%d')
-        today = datetime.date.today()
-        data_to = today.strftime('%Y-%m-%d')
-        df = df[(df['Опубликовано'] >= data_from) & (df['Опубликовано'] <= data_to)]
+        data_to = st.session_state.to_data.strftime('%Y-%m-%d')
+        df = df[
+            (df['Опубликовано'] >= data_from) & (df['Опубликовано'] <= data_to)
+        ]
 
-        df = df[df['Локация'] == st.session_state.location]
+        if st.session_state.location != '':
+            df = df[df['Локация'] == str(st.session_state.location).lower()]
+
         if st.session_state.with_zp:
             df.dropna(subset=['зарплата от', 'зарплата до'], inplace=True)
-        df = df[(df['зарплата от'] >= st.session_state.from_zp_rub) & (df['зарплата до'] <= st.session_state.to_zp_rub)]
+        df = df[(df['зарплата от'] >= st.session_state.from_zp_rub) &
+                (df['зарплата до'] <= st.session_state.to_zp_rub)]
         st.write(df)
 
         employers = set(df['Работодатель'])
@@ -99,10 +133,10 @@ def visualization():
         all_market_max = max(df['зарплата до'])
 
         all_market_median = np.median(list(df['зарплата от']) +
-                                    list(df['зарплата до']))
+                                      list(df['зарплата до']))
 
         all_market_mean = np.mean(list(df['зарплата от']) +
-                                list(df['зарплата до']))
+                                  list(df['зарплата до']))
 
         results.update(
             {
@@ -142,7 +176,7 @@ def visualization():
         )
 
         plt.axvline(x=diaypi_zp)
-        plt.xlim(50000, 170000)
+        plt.xlim(50000, max(df['зарплата до']) + 10000)
         plt.xlabel('зарплата, руб (gross)')
         # plt.show()
         st.pyplot(plt)
