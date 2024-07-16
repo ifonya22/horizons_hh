@@ -9,3 +9,5 @@ RUN pip3 install -r requirements.txt
 COPY . .
 
 CMD ["streamlit", "run", "frontend_main.py"]
+
+# docker run -p 8501:8501 -d --name hh hh:0.0.1 

@@ -1,4 +1,5 @@
 from methods import get_method, __send_request__
+
 methods = ["vacancies"]
 import json
 from datetime import datetime
@@ -8,50 +9,50 @@ from preprocessing import start_prprocessing
 if __name__ == "__main__":
     # for method in methods:
     #     get_method(endpoint=method)
-    text = input("""____
+    text = input(
+        """____
 Введите запрос для поиска вакансии
 Например: Java backend разработчик
 ____
-""")
+"""
+    )
     experience_list = [
-      {
-         "id": "noExperience",
-         "name": "Нет опыта"
-      },
-      {
-         "id": "between1And3",
-         "name": "От 1 года до 3 лет"
-      },
-      {
-         "id": "between3And6",
-         "name": "От 3 до 6 лет"
-      },
-      {
-         "id": "moreThan6",
-         "name": "Более 6 лет"
-      }
-   ]
-    experience = int(input("""____
+        {"id": "noExperience", "name": "Нет опыта"},
+        {"id": "between1And3", "name": "От 1 года до 3 лет"},
+        {"id": "between3And6", "name": "От 3 до 6 лет"},
+        {"id": "moreThan6", "name": "Более 6 лет"},
+    ]
+    experience = int(
+        input(
+            """____
 Введите опыт работы:
 0 - Нет опыта
 1 - От 1 года до 3 лет
 2 - От 3 до 6 лет
 3 - Более 6 лет
 ____
-"""))
-    while not str(experience) in ['0','1','2','3']:
-        print("""
-----!!!Опыт работы должен быть указан целым числом от 0 до 3 включительно----""")
-        experience = int(input("""____
+"""
+        )
+    )
+    while not str(experience) in ["0", "1", "2", "3"]:
+        print(
+            """
+----!!!Опыт работы должен быть указан целым числом от 0 до 3 включительно----"""
+        )
+        experience = int(
+            input(
+                """____
 Введите опыт работы:
 0 - Нет опыта
 1 - От 1 года до 3 лет
 2 - От 3 до 6 лет
 3 - Более 6 лет
 ____
-"""))
-    now = datetime.now().strftime('%dT%H%M')
-    with open('jsons/'+methods[0]+'.json', 'w', encoding='utf8') as file:
+"""
+            )
+        )
+    now = datetime.now().strftime("%dT%H%M")
+    with open("jsons/" + methods[0] + ".json", "w", encoding="utf8") as file:
         page = 0
         params_vacancies = {
             "experience": experience_list[experience]["id"],
@@ -67,8 +68,8 @@ ____
             "area": "113",
             # "only_with_salary": True,
             # "period": 30,
-            "premium": False
-                }
+            "premium": False,
+        }
         response_json = __send_request__(endpoint=methods[0], params=params_vacancies)
         for page in range(1, 19):
             print(f"page = {page}")
@@ -87,21 +88,27 @@ ____
                 "area": "113",
                 # "only_with_salary": True,
                 # "period": 30,
-                "premium": False
-                    }
-            response_json["items"] += __send_request__(endpoint=methods[0], params=params_vacancies)["items"]
+                "premium": False,
+            }
+            response_json["items"] += __send_request__(
+                endpoint=methods[0], params=params_vacancies
+            )["items"]
         json.dump(response_json, file, ensure_ascii=False, indent=3)
 
-    input("""_____
+    input(
+        """_____
 Данные из хх ру загружены.
 Нажмите Enter начать очистку данных
 _____
-""")
+"""
+    )
     size = start_prprocessing()
-    input(f"""_____
+    input(
+        f"""_____
 Очистка данных завершена.
 Всего получено {size} элементов после очистки
-_____""")
+_____"""
+    )
     # get_method(endpoint=methods[0], params=params_vacancies)
     # get_method(endpoint='dictionaries')
     # get_method(endpoint='areas')
