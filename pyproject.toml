@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "tmk-hh"
+version = "0.1.0"
+description = ""
+authors = ["Ilya Afonichev <ilya.afonichev@tmk-group.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+streamlit = "^1.37.0"
+matplotlib = "^3.9.1"
+pandas = "^2.2.2"
+numpy = "^2.0.1"
+sqlalchemy = "^2.0.31"
+schedule = "^1.2.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

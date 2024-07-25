@@ -2,8 +2,15 @@ import streamlit as st
 import json
 import os
 
-from methods import __send_request__
 
+from requests import Session
+
+
+base_url = "https://api.hh.ru/"
+HEADERS = {
+    "User-Agent": "Mozilla/5.0",
+    "Content-type": "application/json",
+}  # type: ignore
 methods = ["vacancies"]
 experience_list = [
     {"id": "noExperience", "name": "Нет опыта"},
@@ -11,6 +18,18 @@ experience_list = [
     {"id": "between3And6", "name": "От 3 до 6 лет"},
     {"id": "moreThan6", "name": "Более 6 лет"},
 ]
+
+def send_request(endpoint=None, params: dict = None):
+    url = base_url + endpoint
+    # print(f"Requesting {endpoint}")
+    with Session() as current_session:
+        current_session.headers = HEADERS
+        response = current_session.get(url=url, headers=HEADERS, params=params)
+        status_code = response.status_code
+        if status_code == 400:
+            raise Exception(f"Error request with code {status_code}")
+        print(f"Response status = {status_code}")
+    return response.json()
 
 
 def parse_vacancies(text, experience):
@@ -27,7 +46,7 @@ def parse_vacancies(text, experience):
 
         vacancy_count = 0
         per_page = 100
-        response_json = __send_request__(endpoint=methods[0], params=params_vacancies)
+        response_json = send_request(endpoint=methods[0], params=params_vacancies)
 
         bar = st.progress(0)
         for page in range(0, 19):
@@ -39,7 +58,7 @@ def parse_vacancies(text, experience):
                 "premium": False,
             }
 
-            answer = __send_request__(endpoint=methods[0], params=params_vacancies)
+            answer = send_request(endpoint=methods[0], params=params_vacancies)
             print(
                 f"page = {page}, len = {len(answer['items'])}, {len(response_json['items'])}"
             )
@@ -53,4 +72,3 @@ def parse_vacancies(text, experience):
         json.dump(response_json, file, ensure_ascii=False, indent=3)
 
     return vacancy_count
-    st.success(f"Обработано вакансий: {vacancy_count} / {len(response_json['items'])}")

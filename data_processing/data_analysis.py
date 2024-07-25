@@ -5,8 +5,9 @@ import pandas as pd
 import uuid
 from datetime import datetime
 
+from data_processing.connect import engine
 
-def analysis(job_query, next_search_date):
+def analysis(job_query, next_search_date, experience):
     with open("jsons/vacancies.json", encoding="utf-8") as inputfile:
         myfile = pd.read_json(inputfile)
 
@@ -17,7 +18,6 @@ def analysis(job_query, next_search_date):
         # print (mydict)
 
     # далее идут блоки, где мы из словаря формируем столбцы датафрейма
-
     name = []
     salaryfr = []
     salaryto = []
@@ -72,34 +72,40 @@ def analysis(job_query, next_search_date):
     data.append(vacancy_url)
     df = pd.DataFrame(data).transpose()
     df.columns = [
-        "вакансия",
-        "зарплата от",
-        "зарплата до",
-        "Валюта",
-        "Локация",
-        "Опубликовано",
-        "Работодатель",
-        "Роль",
-        "Опыт",
-        "Ссылка на вакансию",
+        "req_str",
+        "sal_from",
+        "sal_to",
+        "currency",
+        "city",
+        "pub_date",
+        "employer",
+        "job_title",
+        "experience",
+        "link",
     ]
 
     # дропаем строки с пустой зарплатой, заполняем зп, если указана
     # одна сторона вилки, приводим в порядок дату, делаем нормальный индекс
     # добавляем среднюю зп
-    df["зарплата от"].fillna("0", inplace=True)
-    df = df.drop(df[df["зарплата от"] == "0"].index)
-    df["зарплата до"].fillna(df["зарплата от"], inplace=True)
-    df["Опубликовано"] = pd.to_datetime(df["Опубликовано"]).dt.date
+    df["sal_from"].fillna("0", inplace=True)
+    df = df.drop(df[df["sal_from"] == "0"].index)
+    df["sal_to"].fillna(df["sal_from"], inplace=True)
+    df["pub_date"] = pd.to_datetime(df["pub_date"]).dt.date
     df.reset_index(drop=True, inplace=True)
-    df["средняя"] = (df["зарплата от"] + df["зарплата до"]) / 2
+    df["average_value"] = (df["sal_from"] + df["sal_to"]) / 2
 
+    uuid = create_uuid()
+    df['search_date'] = [datetime.now().strftime("%d-%m-%Y %H:%M:%S") for _ in range(len(df))]
+    df['uuid'] = [uuid for _ in range(len(df))]
+    # df['req_str'] = [job_query for _ in range(len(df))]
     # сохраняем файл
     os.makedirs("csv", exist_ok=True)
-    df.to_csv("csv/clean_vac.csv", sep="\t", encoding="utf-8")
-    uuid = create_uuid()
-    df.to_csv(f"csv/{uuid}.csv", sep="\t", encoding="utf-8")
-    insert_uuid(uuid, job_query, next_search_date)
+    # df.to_csv("csv/clean_vac.csv", sep="\t", encoding="utf-8")
+    df.to_sql('gen_table', con=engine, if_exists='append', index=False)
+    
+    # df.to_csv(f"csv/{uuid}.csv", sep="\t", encoding="utf-8")
+    if next_search_date is not None:
+        insert_uuid(uuid, job_query, next_search_date, experience)
     return True, len(df)
 
 
@@ -108,12 +114,69 @@ def create_uuid():
     return str(uuid.uuid4())
 
 
-def insert_uuid(uuid, job_query, next_search_date):
-    df = pd.read_csv("csv/results.csv", sep=",", index_col=0)
+def insert_uuid(uuid, job_query, next_search_date, experience):
+    # df = pd.read_csv("csv/results.csv", sep=",", index_col=0)
+    df = pd.DataFrame(columns=['uuid', 'req_str', 'experience', 'last_search_date', 'next_search_date', 'csv'])
     df.loc[len(df.index)] = [
         uuid,
         job_query.replace(" ", "_"),
+        experience,
         datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
         next_search_date,
+        'csv',
     ]
-    df.to_csv("csv/results.csv", sep=",")
+    # df.to_csv("csv/results.csv", sep=",")
+    df.to_sql('schedule_table', con=engine, if_exists='append', index=False)
+
+
+from sqlalchemy import select
+import pandas as pd
+from data_processing.connect import Session
+from data_processing.models import ScheduleTable
+from sqlalchemy import create_engine, text
+def get_schedule_data():
+
+    # session = Session()
+    # query = select(
+    #     ScheduleTable.uuid,
+    #     ScheduleTable.req_str,
+    #     ScheduleTable.experience,
+    #     ScheduleTable.last_search_date,
+    #     ScheduleTable.next_search_date
+    # )
+
+    # result = session.execute(query).fetchall()
+    # df_schedule = pd.DataFrame(result, columns=['uuid', 'req_str', 'experience', 'last_search_date', 'next_search_date'])
+    # df_schedule['last_search_date'] = pd.to_datetime(df_schedule['last_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
+    # df_schedule['next_search_date'] = pd.to_datetime(df_schedule['next_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
+
+    # session.close()
+#     engine = create_engine('sqlite:///mydatabase.db')  # Замените на ваш URL соединения
+
+# # Выполните запрос
+#     with engine.connect() as connection:
+#         sql_query = text("""
+#             SELECT uuid, req_str, experience, last_search_date, next_search_date
+#             FROM schedule_table
+#             """)
+    
+#     result = connection.execute(sql_query).fetchall()
+    
+#     # Преобразование результатов в DataFrame
+#     df_schedule = pd.DataFrame(result, columns=['uuid', 'req_str', 'experience', 'last_search_date', 'next_search_date'])
+    
+#     # Преобразование столбцов в формат даты и времени
+#     df_schedule['last_search_date'] = pd.to_datetime(df_schedule['last_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
+#     df_schedule['next_search_date'] = pd.to_datetime(df_schedule['next_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
+    import sqlite3
+    conn = sqlite3.connect('mydatabase.db')
+
+    # Создание курсора для выполнения запросов
+  
+
+    # Выполнение запроса для получения списка всех таблиц
+    df = pd.read_sql_query("SELECT * FROM 'schedule_table'", conn)
+    conn.close()
+
+    print(df)
+    return df
