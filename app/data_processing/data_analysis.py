@@ -169,7 +169,7 @@ def get_schedule_data():
 #     df_schedule['last_search_date'] = pd.to_datetime(df_schedule['last_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
 #     df_schedule['next_search_date'] = pd.to_datetime(df_schedule['next_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
     import sqlite3
-    conn = sqlite3.connect('mydatabase.db')
+    conn = sqlite3.connect('/database/mydatabase.db')
 
     # Создание курсора для выполнения запросов
   
