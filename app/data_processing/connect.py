@@ -1,9 +1,20 @@
-from data_processing.models import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-engine = create_engine('sqlite:///database/mydatabase.db?check_same_thread=False')
+from data_processing.models import Base
 
+
+DATABASE_URL = "postgresql://hhuser:Pwod7r734834@postgres/hh"
+
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base.metadata.create_all(engine)
 
-Session = sessionmaker(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()

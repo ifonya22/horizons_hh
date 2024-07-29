@@ -5,7 +5,10 @@ import pandas as pd
 import uuid
 from datetime import datetime
 
-from data_processing.connect import engine
+from data_processing.models import GenTable
+from data_processing.utils import add_schedule_to_db, save_dataframe
+from data_processing.connect import engine, get_db
+from data_processing.utils import crud_schedule_table, crud_gen_table
 
 def analysis(job_query, next_search_date, experience):
     with open("jsons/vacancies.json", encoding="utf-8") as inputfile:
@@ -95,13 +98,19 @@ def analysis(job_query, next_search_date, experience):
     df["average_value"] = (df["sal_from"] + df["sal_to"]) / 2
 
     uuid = create_uuid()
-    df['search_date'] = [datetime.now().strftime("%d-%m-%Y %H:%M:%S") for _ in range(len(df))]
+    df['search_date'] = [datetime.now().strftime("%Y-%m-%d %H:%M:%S") for _ in range(len(df))]
     df['uuid'] = [uuid for _ in range(len(df))]
     # df['req_str'] = [job_query for _ in range(len(df))]
     # сохраняем файл
     os.makedirs("csv", exist_ok=True)
     # df.to_csv("csv/clean_vac.csv", sep="\t", encoding="utf-8")
-    df.to_sql('gen_table', con=engine, if_exists='append', index=False)
+    # df.to_sql('gen_table', con=engine, if_exists='append', index=False)
+    # from data_processing.models import GenTable
+    # print('++++++++++++++++++++++++++++++++++++++')
+    # print(check_column_types_match(next(get_db()), df, GenTable))
+    # df = convert_date_format(df, ['search_date'])
+    # crud_gen_table.save_dataframe(next(get_db()), df)
+    save_dataframe(next(get_db()), df, GenTable)
     
     # df.to_csv(f"csv/{uuid}.csv", sep="\t", encoding="utf-8")
     if next_search_date is not None:
@@ -116,67 +125,27 @@ def create_uuid():
 
 def insert_uuid(uuid, job_query, next_search_date, experience):
     # df = pd.read_csv("csv/results.csv", sep=",", index_col=0)
-    df = pd.DataFrame(columns=['uuid', 'req_str', 'experience', 'last_search_date', 'next_search_date', 'csv'])
-    df.loc[len(df.index)] = [
+    # df = pd.DataFrame(columns=['uuid', 'req_str', 'experience', 'last_search_date', 'next_search_date', 'csv'])
+    add_schedule_to_db(
+        next(get_db()),
         uuid,
         job_query.replace(" ", "_"),
         experience,
-        datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         next_search_date,
         'csv',
-    ]
-    # df.to_csv("csv/results.csv", sep=",")
-    df.to_sql('schedule_table', con=engine, if_exists='append', index=False)
+    )
 
 
-from sqlalchemy import select
+
 import pandas as pd
-from data_processing.connect import Session
-from data_processing.models import ScheduleTable
-from sqlalchemy import create_engine, text
+
 def get_schedule_data():
 
-    # session = Session()
-    # query = select(
-    #     ScheduleTable.uuid,
-    #     ScheduleTable.req_str,
-    #     ScheduleTable.experience,
-    #     ScheduleTable.last_search_date,
-    #     ScheduleTable.next_search_date
-    # )
+    df = crud_schedule_table.get_all_as_dataframe(next(get_db()))
+    return df
 
-    # result = session.execute(query).fetchall()
-    # df_schedule = pd.DataFrame(result, columns=['uuid', 'req_str', 'experience', 'last_search_date', 'next_search_date'])
-    # df_schedule['last_search_date'] = pd.to_datetime(df_schedule['last_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
-    # df_schedule['next_search_date'] = pd.to_datetime(df_schedule['next_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
-
-    # session.close()
-#     engine = create_engine('sqlite:///mydatabase.db')  # Замените на ваш URL соединения
-
-# # Выполните запрос
-#     with engine.connect() as connection:
-#         sql_query = text("""
-#             SELECT uuid, req_str, experience, last_search_date, next_search_date
-#             FROM schedule_table
-#             """)
-    
-#     result = connection.execute(sql_query).fetchall()
-    
-#     # Преобразование результатов в DataFrame
-#     df_schedule = pd.DataFrame(result, columns=['uuid', 'req_str', 'experience', 'last_search_date', 'next_search_date'])
-    
-#     # Преобразование столбцов в формат даты и времени
-#     df_schedule['last_search_date'] = pd.to_datetime(df_schedule['last_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
-#     df_schedule['next_search_date'] = pd.to_datetime(df_schedule['next_search_date'], format='%d-%m-%Y %H:%M:%S', errors='coerce')
-    import sqlite3
-    conn = sqlite3.connect('/database/mydatabase.db')
-
-    # Создание курсора для выполнения запросов
-  
-
-    # Выполнение запроса для получения списка всех таблиц
-    df = pd.read_sql_query("SELECT * FROM 'schedule_table'", conn)
-    conn.close()
-
-    print(df)
+def convert_date_format(df: pd.DataFrame, date_columns: list):
+    for col in date_columns:
+        df[col] = pd.to_datetime(df[col], format='%Y-%m-%d %H:%M:%S')
     return df

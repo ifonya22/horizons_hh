@@ -3,13 +3,50 @@ version: '3.8'
 services:
   app:
     build: ./app
+    container_name: hh_app
     ports:
       - "8501:8501"
-    volumes:
-      - /database:/app/database
+    networks:
+      - postgres
+
   scheduller:
     build: ./scheduller
+    container_name: hh_scheduller
+    networks:
+      - postgres
+
+  postgres:
+    image: postgres:14.8-alpine3.18
+    container_name: postgres_container
+    environment:
+      POSTGRES_DB: "hh"
+      POSTGRES_USER: "hhuser"
+      POSTGRES_PASSWORD: "Pwod7r734834"
+      PGDATA: "/var/lib/postgresql/data/pgdata"
     volumes:
-      - /database:/app/database
+      - ../2. Init Database:/docker-entrypoint-initdb.d
+      - hh-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hhuser -d hh"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 4G
+    networks:
+      - postgres
 
+volumes:
+  hh-data:
+  pgadmin-data:
 
+networks:
+  postgres:
+    driver: bridge

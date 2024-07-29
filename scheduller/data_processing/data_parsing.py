@@ -47,7 +47,6 @@ def parse_vacancies(text, experience):
         per_page = 100
         response_json = send_request(endpoint=methods[0], params=params_vacancies)
 
-
         for page in range(0, 19):
             params_vacancies = {
                 "experience": experience_list[experience]["id"],
@@ -63,10 +62,8 @@ def parse_vacancies(text, experience):
             )
             response_json["items"] += answer["items"]
 
-
             vacancy_count += len(answer["items"])
             if page * per_page >= answer["found"]:
-
                 break
         json.dump(response_json, file, ensure_ascii=False, indent=3)
 

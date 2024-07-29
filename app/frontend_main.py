@@ -1,4 +1,6 @@
 import datetime
+from data_processing.connect import get_db
+from data_processing.utils import get_data_by_uuid
 import streamlit as st
 import time
 import pandas as pd
@@ -47,7 +49,7 @@ if tab == "Добавление вакансий в очередь для пар
                     vacancy_count = parse_vacancies(text=job_query, experience=exp)
                     total_vacancies_count += vacancy_count
 
-                    next_search_date = st.session_state.next_search_date.strftime("%d-%m-%Y")
+                    next_search_date = st.session_state.next_search_date.strftime("%Y-%m-%d %H:%M:%S")
 
                     result, cleared_vacancy_count = analysis(job_query, next_search_date, exp)
 
@@ -106,14 +108,26 @@ elif tab == "Отчеты":
         col.write(field_name)
 
     
-    for x in range(len(df)):
+    for i, row in df.iterrows():
         col1, col2, col3, col4, col5, col6, col7 = st.columns((1, 2, 2, 2, 2, 2, 2))
-        col1.write(df.iloc[x]['idschedule_table'])  # index
-        col2.write(df.iloc[x]['uuid'])  # job
-        col3.write(df.iloc[x]['req_str'])  # experience
-        col4.write(df.iloc[x]['experience'])
-        col5.write(df.iloc[x]['last_search_date'])  # last request time
-        col6.write(df.iloc[x]['next_search_date'])
-        filename = f"{df.iloc[x]['idschedule_table']}.csv"
-        csv = df.loc[[x]].to_csv(index=False)
-        col7.download_button(label="Скачать CSV", data=csv, file_name=filename, mime='text/csv')
+        col1.write(row['idschedule_table'])  # index
+        col2.write(row['uuid'])  # job
+        col3.write(row['req_str'])  # experience
+        col4.write(row['experience'])
+        col5.write(row['last_search_date'])  # last request time
+        col6.write(row['next_search_date'])
+        # col7.download_button(label="Скачать CSV", data=csv, file_name=filename, mime='text/csv')
+        if col7.button(f"Скачать Отчёт {row['idschedule_table']}", key=f"btn_{i}"):
+            # Генерация CSV файла
+
+            filtered_df = get_data_by_uuid(next(get_db()), row['uuid'])
+            filename = f"{row['idschedule_table']}.csv"
+            csv = filtered_df.to_csv(index=False)
+            
+            # Использование компонента для скачивания сгенерированного файла
+            st.download_button(
+                label=f"Скачать {filename}",
+                data=csv,
+                file_name=filename,
+                mime='text/csv'
+            )
